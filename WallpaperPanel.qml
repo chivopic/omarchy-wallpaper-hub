@@ -30,7 +30,7 @@ PopupCard {
   signal refreshCatalog()
 
   contentWidth: fittedContentWidth(Style.space(420))
-  contentHeight: fittedContentHeight(Style.space(480), Style.space(620))
+  contentHeight: fittedContentHeight(panelCol.implicitHeight)
 
   Item {
     id: panelLayout
@@ -40,6 +40,7 @@ PopupCard {
     Keys.onEscapePressed: root.close()
 
     Column {
+      id: panelCol
       anchors.fill: parent
       spacing: Style.space(8)
 
@@ -134,7 +135,7 @@ PopupCard {
       // 3. Main Grid Area
       Item {
         width: parent.width
-        height: root.contentHeight - Style.space(136) // dynamically fits inside popup
+        height: Style.space(320)
         clip: true
 
         WallpaperGrid {

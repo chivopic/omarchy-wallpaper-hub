@@ -101,7 +101,7 @@ Item {
           required property var modelData
           cardWidth: root.itemWidth
           cardHeight: root.itemHeight
-
+          wallpaperItem: modelData
           onApplied: function(path) { root.applied(path) }
           onFavoriteToggled: function(id) { root.favoriteToggled(id) }
           onDeleted: function(id) { root.deleted(id) }

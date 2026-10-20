@@ -7,7 +7,7 @@ import qs.Ui
 Item {
   id: root
 
-  property var modelData: ({})
+  property var wallpaperItem: ({})
   property real cardWidth: 120
   property real cardHeight: 82
 
@@ -19,15 +19,15 @@ Item {
   width: cardWidth
   height: cardHeight
 
-  readonly property bool isCurrent: modelData && modelData.isCurrent === true
-  readonly property bool isFavorite: modelData && modelData.favorite === true
-  readonly property bool canDelete: modelData && modelData.canDelete === true && !isCurrent
+  readonly property bool isCurrent: wallpaperItem && wallpaperItem.isCurrent === true
+  readonly property bool isFavorite: wallpaperItem && wallpaperItem.favorite === true
+  readonly property bool canDelete: wallpaperItem && wallpaperItem.canDelete === true && !isCurrent
   readonly property string thumbSource: {
-    if (!modelData) return ""
-    if (modelData.thumbnail && modelData.thumbnail.length > 0) {
-      return "file://" + modelData.thumbnail
+    if (!wallpaperItem) return ""
+    if (wallpaperItem.thumbnail && wallpaperItem.thumbnail.length > 0) {
+      return "file://" + wallpaperItem.thumbnail
     }
-    return modelData.path ? "file://" + modelData.path : ""
+    return wallpaperItem.path ? "file://" + wallpaperItem.path : ""
   }
 
   Rectangle {
@@ -76,7 +76,7 @@ Item {
       anchors.right: parent.right
       anchors.bottom: parent.bottom
       anchors.margins: Style.space(4)
-      text: modelData ? (modelData.name || modelData.filename || "") : ""
+      text: wallpaperItem ? (wallpaperItem.name || wallpaperItem.filename || "") : ""
       color: "#ffffff"
       font.family: Style.font.family
       font.pixelSize: Style.font.caption
@@ -137,8 +137,8 @@ Item {
           cursorShape: Qt.PointingHandCursor
           onClicked: function(mouse) {
             mouse.accepted = true
-            if (modelData && modelData.id) {
-              root.favoriteToggled(modelData.id)
+            if (wallpaperItem && wallpaperItem.id) {
+              root.favoriteToggled(wallpaperItem.id)
             }
           }
         }
@@ -167,8 +167,8 @@ Item {
           cursorShape: Qt.PointingHandCursor
           onClicked: function(mouse) {
             mouse.accepted = true
-            if (modelData && modelData.path) {
-              root.revealed(modelData.path)
+            if (wallpaperItem && wallpaperItem.path) {
+              root.revealed(wallpaperItem.path)
             }
           }
         }
@@ -197,8 +197,8 @@ Item {
           cursorShape: Qt.PointingHandCursor
           onClicked: function(mouse) {
             mouse.accepted = true
-            if (modelData && modelData.id) {
-              root.deleted(modelData.id)
+            if (wallpaperItem && wallpaperItem.id) {
+              root.deleted(wallpaperItem.id)
             }
           }
         }
@@ -213,8 +213,8 @@ Item {
       cursorShape: Qt.PointingHandCursor
       acceptedButtons: Qt.LeftButton
       onClicked: {
-        if (modelData && modelData.path) {
-          root.applied(modelData.path)
+        if (wallpaperItem && wallpaperItem.path) {
+          root.applied(wallpaperItem.path)
         }
       }
     }
