@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.chivopic.wallpaper-hub",
+  "name": "Wallpaper Hub",
+  "version": "1.0.0",
+  "author": "chivopic",
+  "license": "MIT",
+  "description": "Desktop wallpaper manager for Omarchy: fast switching, gallery preview, clipboard import, and favorites.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Wallpaper Hub",
+    "description": "Desktop wallpaper switcher & gallery manager",
+    "category": "Theme",
+    "aliases": ["wallpaper", "background", "wallpapers", "hub"],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "defaultScope": "current-theme"
+    },
+    "schema": [
+      {
+        "key": "defaultScope",
+        "type": "string",
+        "label": "Default switching scope",
+        "description": "Default category when switching wallpapers with the scroll wheel (current-theme, global, favorites).",
+        "defaultValue": "current-theme"
+      }
+    ]
+  }
+}
