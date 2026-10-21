@@ -30,6 +30,11 @@ Item {
     return wallpaperItem.path ? "file://" + wallpaperItem.path : ""
   }
 
+  // Stable card-level hover tracker (never drops when entering child buttons)
+  HoverHandler {
+    id: cardHover
+  }
+
   Rectangle {
     id: cardBackground
     anchors.fill: parent
@@ -39,7 +44,7 @@ Item {
 
     border.color: root.isCurrent
       ? Commons.Color.accent
-      : (cardMouse.containsMouse ? Commons.Color.accent : Qt.rgba(Commons.Color.popups.border.r, Commons.Color.popups.border.g, Commons.Color.popups.border.b, 0.4))
+      : (cardHover.hovered ? Commons.Color.accent : Qt.rgba(Commons.Color.popups.border.r, Commons.Color.popups.border.g, Commons.Color.popups.border.b, 0.4))
     border.width: root.isCurrent ? Math.max(2, Style.space(2)) : 1
 
     Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -53,25 +58,32 @@ Item {
       fillMode: Image.PreserveAspectCrop
       asynchronous: true
       cache: true
-      opacity: cardMouse.containsMouse ? 1.0 : 0.92
+      opacity: cardHover.hovered ? 1.0 : 0.92
 
       Behavior on opacity { NumberAnimation { duration: 100 } }
     }
 
-    // 2. Base MouseArea for Whole Card Click (z: 1)
+    // 2. Base MouseArea for Whole Card (z: 1)
     MouseArea {
       id: cardMouse
       z: 1
       anchors.fill: parent
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
-      acceptedButtons: Qt.LeftButton
+      acceptedButtons: Qt.LeftButton | Qt.RightButton
       onWheel: function(wheel) {
         wheel.accepted = false // Pass wheel to parent Flickable for smooth scrolling
       }
-      onClicked: {
-        if (wallpaperItem && wallpaperItem.path) {
-          root.applied(wallpaperItem.path)
+      onClicked: function(mouse) {
+        if (mouse.button === Qt.RightButton) {
+          // Right-click shortcut: reveal in file manager
+          if (wallpaperItem && wallpaperItem.path) {
+            root.revealed(wallpaperItem.path)
+          }
+        } else if (mouse.button === Qt.LeftButton) {
+          if (wallpaperItem && wallpaperItem.path) {
+            root.applied(wallpaperItem.path)
+          }
         }
       }
     }
@@ -127,24 +139,24 @@ Item {
       }
     }
 
-    // 6. Action Buttons Top Right (z: 10 - ALWAYS on top, fully interactive!)
+    // 6. Action Buttons Top Right (z: 10 - stable hover & comfortable touch target)
     Row {
       z: 10
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.margins: Style.space(4)
-      spacing: Style.space(3)
-      opacity: (cardMouse.containsMouse || root.isFavorite) ? 1.0 : 0.0
+      spacing: Style.space(4)
+      opacity: (cardHover.hovered || root.isFavorite) ? 1.0 : 0.0
 
       Behavior on opacity { NumberAnimation { duration: 120 } }
 
-      // Favorite Button
+      // Favorite Button (24x24)
       Rectangle {
-        width: Style.space(20)
-        height: Style.space(20)
-        radius: Style.space(10)
-        color: favMouse.containsMouse ? Qt.rgba(0, 0, 0, 0.85) : Qt.rgba(0, 0, 0, 0.55)
-        border.color: favMouse.containsMouse ? (root.isFavorite ? "#ff5c7c" : Commons.Color.accent) : "transparent"
+        width: Style.space(24)
+        height: Style.space(24)
+        radius: Style.space(12)
+        color: favMouse.containsMouse ? Qt.rgba(0, 0, 0, 0.85) : (root.isFavorite ? Qt.rgba(0, 0, 0, 0.65) : Qt.rgba(0, 0, 0, 0.5))
+        border.color: favMouse.containsMouse ? (root.isFavorite ? "#ff5c7c" : Commons.Color.accent) : (root.isFavorite ? "#ff5c7c" : "transparent")
         border.width: 1
 
         Behavior on color { ColorAnimation { duration: 100 } }
@@ -173,13 +185,13 @@ Item {
         }
       }
 
-      // Locate in file manager button
+      // Locate in file manager button (24x24)
       Rectangle {
-        visible: cardMouse.containsMouse
-        width: Style.space(20)
-        height: Style.space(20)
-        radius: Style.space(10)
-        color: locateMouse.containsMouse ? Qt.rgba(0, 0, 0, 0.85) : Qt.rgba(0, 0, 0, 0.55)
+        visible: cardHover.hovered
+        width: Style.space(24)
+        height: Style.space(24)
+        radius: Style.space(12)
+        color: locateMouse.containsMouse ? Qt.rgba(0, 0, 0, 0.85) : Qt.rgba(0, 0, 0, 0.5)
         border.color: locateMouse.containsMouse ? Commons.Color.accent : "transparent"
         border.width: 1
 
@@ -209,13 +221,13 @@ Item {
         }
       }
 
-      // Delete Button (only if canDelete)
+      // Delete Button (24x24, only if canDelete)
       Rectangle {
-        visible: cardMouse.containsMouse && root.canDelete
-        width: Style.space(20)
-        height: Style.space(20)
-        radius: Style.space(10)
-        color: deleteMouse.containsMouse ? Qt.rgba(200, 30, 40, 0.95) : Qt.rgba(0, 0, 0, 0.55)
+        visible: cardHover.hovered && root.canDelete
+        width: Style.space(24)
+        height: Style.space(24)
+        radius: Style.space(12)
+        color: deleteMouse.containsMouse ? Qt.rgba(210, 30, 45, 0.95) : Qt.rgba(0, 0, 0, 0.5)
         border.color: deleteMouse.containsMouse ? "#ff4d6a" : "transparent"
         border.width: 1
 

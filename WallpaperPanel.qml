@@ -29,7 +29,7 @@ PopupCard {
   signal randomWallpaper()
   signal refreshCatalog()
 
-  contentWidth: fittedContentWidth(Style.space(420))
+  contentWidth: fittedContentWidth(Style.space(430))
   contentHeight: fittedContentHeight(panelCol.implicitHeight)
 
   Item {
@@ -48,6 +48,7 @@ PopupCard {
       Item {
         width: parent.width
         height: Style.space(26)
+        implicitHeight: Style.space(26)
 
         Row {
           anchors.left: parent.left
@@ -136,6 +137,7 @@ PopupCard {
       Item {
         width: parent.width
         height: Style.space(320)
+        implicitHeight: Style.space(320)
         clip: true
 
         WallpaperGrid {
@@ -195,7 +197,8 @@ PopupCard {
       // 4. Bottom Footer Toolbar
       Item {
         width: parent.width
-        height: Style.space(32)
+        height: Style.space(34)
+        implicitHeight: Style.space(34)
 
         Row {
           anchors.left: parent.left

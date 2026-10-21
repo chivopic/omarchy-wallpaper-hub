@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 450" width="100%" height="450">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="archBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f111a" />
+      <stop offset="50%" stop-color="#161826" />
+      <stop offset="100%" stop-color="#1b1d2e" />
+    </linearGradient>
+
+    <!-- Block Gradients -->
+    <linearGradient id="uiBlockGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#89b4fa" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#b4befe" stop-opacity="0.08" />
+    </linearGradient>
+
+    <linearGradient id="coreBlockGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#cba6f7" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#f38ba8" stop-opacity="0.08" />
+    </linearGradient>
+
+    <linearGradient id="systemBlockGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a6e3a1" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#94e2d5" stop-opacity="0.08" />
+    </linearGradient>
+
+    <!-- Arrow Marker -->
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#89b4fa" />
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#cba6f7" />
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#a6e3a1" />
+    </marker>
+  </defs>
+
+  <style>
+    .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+    .layer-title { font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    .module-title { font-size: 13.5px; font-weight: 700; fill: #ffffff; }
+    .module-desc { font-size: 11px; font-weight: 400; fill: #a6adc8; line-height: 1.35; }
+    .pill-label { font-size: 10px; font-weight: 700; }
+  </style>
+
+  <!-- Background -->
+  <rect width="960" height="450" rx="16" fill="url(#archBg)" stroke="#313244" stroke-width="1.5" />
+
+  <!-- Title & Subtitle -->
+  <g transform="translate(40, 32)">
+    <text x="0" y="0" class="sans" font-size="18" font-weight="800" fill="#ffffff">Architecture &amp; System Integration</text>
+    <text x="0" y="20" class="sans" font-size="12" fill="#9399b2">Zero-daemon, native-first desktop pipeline connecting Quickshell QML and Omarchy core</text>
+  </g>
+
+  <!-- ================= LAYER 1: UI PRESENTATION (QUICKSHELL) ================= -->
+  <g transform="translate(40, 72)">
+    <rect width="880" height="92" rx="10" fill="url(#uiBlockGrad)" stroke="#89b4fa" stroke-opacity="0.4" stroke-width="1.2" />
+    <text x="20" y="24" class="sans layer-title" fill="#89b4fa">LAYER 1 · Quickshell QML Presentation Layer</text>
+
+    <!-- Component 1: BarWidget -->
+    <g transform="translate(20, 34)">
+      <rect width="260" height="44" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="14" y="20" class="sans module-title">BarWidget.qml</text>
+      <text x="14" y="36" class="sans module-desc">Top-bar gestures (wheel, middle/right click)</text>
+    </g>
+
+    <!-- Component 2: WallpaperPanel -->
+    <g transform="translate(300, 34)">
+      <rect width="280" height="44" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="14" y="20" class="sans module-title">WallpaperPanel.qml</text>
+      <text x="14" y="36" class="sans module-desc">Dropdown card, scope selector, bottom toolbar</text>
+    </g>
+
+    <!-- Component 3: Components (Card & Grid) -->
+    <g transform="translate(600, 34)">
+      <rect width="260" height="44" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="14" y="20" class="sans module-title">WallpaperGrid &amp; Card</text>
+      <text x="14" y="36" class="sans module-desc">3-column thumbnails, action overlay, badges</text>
+    </g>
+  </g>
+
+  <!-- Connection Arrows UI -> Backend -->
+  <g stroke="#89b4fa" stroke-width="1.8" fill="none">
+    <path d="M 190 164 L 190 196" marker-end="url(#arrowCyan)" />
+    <path d="M 480 164 L 480 196" marker-end="url(#arrowCyan)" />
+    <path d="M 770 164 L 770 196" marker-end="url(#arrowCyan)" />
+  </g>
+  <g transform="translate(480, 184)">
+    <rect x="-85" y="-10" width="170" height="20" rx="10" fill="#11111b" stroke="#313244" stroke-width="1" />
+    <text x="0" y="4" class="mono" font-size="10.5" fill="#89b4fa" text-anchor="middle">Quickshell.Process (JSON)</text>
+  </g>
+
+  <!-- ================= LAYER 2: CORE BACKEND ENGINE (PYTHON) ================= -->
+  <g transform="translate(40, 204)">
+    <rect width="880" height="110" rx="10" fill="url(#coreBlockGrad)" stroke="#cba6f7" stroke-opacity="0.4" stroke-width="1.2" />
+    <text x="20" y="24" class="sans layer-title" fill="#cba6f7">LAYER 2 · Core Backend Engine (backend.py · CLI &amp; Controller)</text>
+
+    <!-- Submodule 1: Catalog & Scopes -->
+    <g transform="translate(20, 36)">
+      <rect width="200" height="58" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="12" y="20" class="sans module-title">WallpaperCatalog</text>
+      <text x="12" y="36" class="sans module-desc">Current Theme / Global / Favs</text>
+      <text x="12" y="50" class="sans module-desc">~/Pictures/ auto-discovery</text>
+    </g>
+
+    <!-- Submodule 2: Import & Wayland -->
+    <g transform="translate(232, 36)">
+      <rect width="200" height="58" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="12" y="20" class="sans module-title">ImportManager</text>
+      <text x="12" y="36" class="sans module-desc">Wayland clipboard (wl-paste)</text>
+      <text x="12" y="50" class="sans module-desc">Zenity file picker dialog</text>
+    </g>
+
+    <!-- Submodule 3: Security & Validation -->
+    <g transform="translate(444, 36)">
+      <rect width="200" height="58" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="12" y="20" class="sans module-title">ImageValidator</text>
+      <text x="12" y="36" class="sans module-desc">PNG/JPEG/WebP strict parsing</text>
+      <text x="12" y="50" class="sans module-desc">SHA-256 dedup, &lt;25MB / 50MP</text>
+    </g>
+
+    <!-- Submodule 4: Safe Deletion & Storage -->
+    <g transform="translate(656, 36)">
+      <rect width="204" height="58" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="12" y="20" class="sans module-title">FileManager &amp; Store</text>
+      <text x="12" y="36" class="sans module-desc">Safe gio trash, active-protect</text>
+      <text x="12" y="50" class="sans module-desc">Atomic metadata.json + .bak</text>
+    </g>
+  </g>
+
+  <!-- Connection Arrows Backend -> System -->
+  <g stroke="#a6e3a1" stroke-width="1.8" fill="none">
+    <path d="M 190 314 L 190 338" marker-end="url(#arrowGreen)" />
+    <path d="M 480 314 L 480 338" marker-end="url(#arrowGreen)" />
+    <path d="M 770 314 L 770 338" marker-end="url(#arrowGreen)" />
+  </g>
+
+  <!-- ================= LAYER 3: SYSTEM INTEGRATION & STORAGE ================= -->
+  <g transform="translate(40, 346)">
+    <rect width="880" height="80" rx="10" fill="url(#systemBlockGrad)" stroke="#a6e3a1" stroke-opacity="0.4" stroke-width="1.2" />
+    <text x="20" y="22" class="sans layer-title" fill="#a6e3a1">LAYER 3 · System Services, Wayland &amp; XDG Storage</text>
+
+    <!-- System Target 1: Omarchy Theme Engine -->
+    <g transform="translate(20, 32)">
+      <rect width="260" height="38" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="12" y="16" class="mono" font-size="11.5" font-weight="700" fill="#a6e3a1">omarchy theme bg set</text>
+      <text x="12" y="30" class="sans module-desc">Native smooth wallpaper transitions</text>
+    </g>
+
+    <!-- System Target 2: Wayland & Vips -->
+    <g transform="translate(300, 32)">
+      <rect width="280" height="38" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="12" y="16" class="mono" font-size="11.5" font-weight="700" fill="#a6e3a1">wl-paste / vipsthumbnail</text>
+      <text x="12" y="30" class="sans module-desc">Clipboard stream &amp; 256px cache generator</text>
+    </g>
+
+    <!-- System Target 3: XDG Storage -->
+    <g transform="translate(600, 32)">
+      <rect width="260" height="38" rx="6" fill="#181825" stroke="#313244" stroke-width="1" />
+      <text x="12" y="16" class="mono" font-size="11.5" font-weight="700" fill="#a6e3a1">~/.local/share &amp; ~/Pictures</text>
+      <text x="12" y="30" class="sans module-desc">Persistent collections &amp; gio trash</text>
+    </g>
+  </g>
+</svg>
