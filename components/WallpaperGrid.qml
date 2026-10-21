@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import Quickshell
 import qs.Commons
 import qs.Commons as Commons
@@ -11,6 +12,9 @@ Item {
   property string currentScope: "current-theme"
   property int columns: 3
   property real gridSpacing: Style.space(8)
+  onCurrentScopeChanged: {
+    flickable.contentY = 0
+  }
 
   signal applied(string path)
   signal favoriteToggled(string id)
@@ -87,6 +91,9 @@ Item {
     contentHeight: grid.implicitHeight
     clip: true
     boundsBehavior: Flickable.StopAtBounds
+    flickableDirection: Flickable.VerticalFlick
+    interactive: contentHeight > height
+    ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
     Grid {
       id: grid

@@ -59,15 +59,17 @@ BarWidget {
     contextMenuOpen = !contextMenuOpen
   }
 
-  function showToast(msg) {
+  function showToast(msg, notifyDesktop) {
     statusMessage = msg
     toastTimer.restart()
-    // Also send an omarchy desktop notification for quick feedback
-    Quickshell.execDetached([
-      "omarchy", "notification", "send",
-      "-g", "󰸉", "-u", "low", "-t", "2000",
-      "Wallpaper Hub", msg
-    ])
+    // Only send desktop notification when panel is NOT open (e.g. wheel / hotkey blind switching)
+    if (notifyDesktop === true || (!root.popupOpen && notifyDesktop !== false)) {
+      Quickshell.execDetached([
+        "omarchy", "notification", "send",
+        "-g", "󰸉", "-u", "low", "-t", "2000",
+        "Wallpaper Hub", msg
+      ])
+    }
   }
 
   Timer {
@@ -120,14 +122,15 @@ BarWidget {
 
   function loadList(scope) {
     currentScope = scope
-    isBusy = true
     listProc.command = ["/usr/bin/python3", "-I", root.scriptPath, "list", "--scope", scope]
     listProc.running = true
   }
 
   function applyWallpaper(path) {
     if (!path) return
-    isBusy = true
+    root.currentBackground = path
+    var filename = path.substring(path.lastIndexOf("/") + 1)
+    root.currentName = filename.substring(0, filename.lastIndexOf(".")) || filename
     applyProc.command = ["/usr/bin/python3", "-I", root.scriptPath, "apply", path]
     applyProc.running = true
   }
@@ -144,11 +147,27 @@ BarWidget {
   }
 
   function toggleFavorite(id) {
+    var items = []
+    for (var i = 0; i < root.wallpaperItems.length; i++) {
+      var it = root.wallpaperItems[i]
+      if (it.id === id) {
+        it.favorite = !it.favorite
+      }
+      items.push(it)
+    }
+    root.wallpaperItems = items
     favProc.command = ["/usr/bin/python3", "-I", root.scriptPath, "favorite", id, "--toggle"]
     favProc.running = true
   }
 
   function deleteWallpaper(id) {
+    var items = []
+    for (var i = 0; i < root.wallpaperItems.length; i++) {
+      if (root.wallpaperItems[i].id !== id) {
+        items.push(root.wallpaperItems[i])
+      }
+    }
+    root.wallpaperItems = items
     delProc.command = ["/usr/bin/python3", "-I", root.scriptPath, "delete", id]
     delProc.running = true
   }
@@ -226,14 +245,13 @@ BarWidget {
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: function() {
-        root.isBusy = false
         try {
           var res = JSON.parse(text)
           if (res && res.success) {
             root.refreshAll()
-            root.showToast("已应用壁纸")
+            root.showToast("已应用壁纸", false)
           } else if (res && res.error) {
-            root.showToast("切换失败: " + res.error.message)
+            root.showToast("切换失败: " + res.error.message, true)
           }
         } catch (e) {}
       }
@@ -308,10 +326,11 @@ BarWidget {
         try {
           var res = JSON.parse(text)
           if (res && res.success) {
-            root.showToast("壁纸已移入回收站")
+            root.showToast("壁纸已移入回收站", false)
             root.refreshAll()
           } else if (res && res.error) {
-            root.showToast("删除失败: " + res.error.message)
+            root.showToast("删除失败: " + res.error.message, true)
+            root.refreshAll()
           }
         } catch (e) {}
       }

@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 280" width="100%" height="280">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f111a" />
+      <stop offset="50%" stop-color="#161927" />
+      <stop offset="100%" stop-color="#1b1d2e" />
+    </linearGradient>
+
+    <!-- Mesh Accent Glows -->
+    <radialGradient id="glowPurple" cx="15%" cy="30%" r="45%">
+      <stop offset="0%" stop-color="#89b4fa" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#89b4fa" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowTeal" cx="85%" cy="70%" r="50%">
+      <stop offset="0%" stop-color="#cba6f7" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#cba6f7" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowAccent" cx="50%" cy="50%" r="35%">
+      <stop offset="0%" stop-color="#f38ba8" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#f38ba8" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Icon Gradients -->
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#89b4fa" />
+      <stop offset="50%" stop-color="#b4befe" />
+      <stop offset="100%" stop-color="#cba6f7" />
+    </linearGradient>
+
+    <linearGradient id="badgeBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.05" />
+    </linearGradient>
+
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <style>
+    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 34px; font-weight: 800; fill: #ffffff; letter-spacing: -0.5px; }
+    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 15px; font-weight: 400; fill: #a6adc8; }
+    .tag-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 12px; font-weight: 600; fill: #cdd6f4; }
+    .stat-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 11px; font-weight: 500; fill: #9399b2; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-val { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; font-weight: 700; fill: #cba6f7; }
+  </style>
+
+  <!-- Base Canvas -->
+  <rect width="960" height="280" rx="16" fill="url(#bgGrad)" stroke="#313244" stroke-width="1.5" />
+  <rect width="960" height="280" rx="16" fill="url(#glowPurple)" />
+  <rect width="960" height="280" rx="16" fill="url(#glowTeal)" />
+  <rect width="960" height="280" rx="16" fill="url(#glowAccent)" />
+
+  <!-- Subtle grid lines overlay -->
+  <g stroke="#ffffff" stroke-opacity="0.03" stroke-width="1">
+    <line x1="80" y1="0" x2="80" y2="280" />
+    <line x1="240" y1="0" x2="240" y2="280" />
+    <line x1="400" y1="0" x2="400" y2="280" />
+    <line x1="560" y1="0" x2="560" y2="280" />
+    <line x1="720" y1="0" x2="720" y2="280" />
+    <line x1="880" y1="0" x2="880" y2="280" />
+    <line x1="0" y1="70" x2="960" y2="70" />
+    <line x1="0" y1="140" x2="960" y2="140" />
+    <line x1="0" y1="210" x2="960" y2="210" />
+  </g>
+
+  <!-- Left Icon Area -->
+  <g transform="translate(48, 48)">
+    <!-- Squircle Background -->
+    <rect width="96" height="96" rx="24" fill="url(#iconGrad)" filter="url(#shadow)" />
+    <!-- Inner Card Preview Graphic -->
+    <rect x="12" y="12" width="72" height="72" rx="14" fill="#181825" fill-opacity="0.9" />
+    
+    <!-- Mountain & Sun Landscape Icon -->
+    <path d="M 24 64 L 38 46 L 50 60 L 60 48 L 72 64 Z" fill="url(#iconGrad)" />
+    <circle cx="62" cy="34" r="6" fill="#f9e2af" />
+    
+    <!-- Top-bar switch dots -->
+    <circle cx="32" cy="24" r="3" fill="#89b4fa" />
+    <circle cx="42" cy="24" r="3" fill="#cba6f7" />
+    <circle cx="52" cy="24" r="3" fill="#f38ba8" />
+  </g>
+
+  <!-- Title & Description Header -->
+  <g transform="translate(168, 52)">
+    <!-- Plugin Badge -->
+    <rect x="0" y="0" width="136" height="22" rx="11" fill="#89b4fa" fill-opacity="0.15" stroke="#89b4fa" stroke-opacity="0.4" stroke-width="1" />
+    <circle cx="10" cy="11" r="4" fill="#a6e3a1" />
+    <text x="22" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#89b4fa">OMARCHY PLUGIN</text>
+
+    <!-- Main Title -->
+    <text x="0" y="52" class="title">Omarchy Wallpaper Hub</text>
+    
+    <!-- Subtitle -->
+    <text x="0" y="78" class="subtitle">Desktop Wallpaper Manager &amp; Gallery Widget for Omarchy Linux</text>
+  </g>
+
+  <!-- Feature Pill Tags Row -->
+  <g transform="translate(48, 172)">
+    <!-- Pill 1: Top-Bar Blind Switch -->
+    <g transform="translate(0, 0)">
+      <rect width="180" height="34" rx="17" fill="#1e1e2e" stroke="url(#badgeBorder)" stroke-width="1" />
+      <text x="16" y="21" class="tag-text">🖱️ Top-Bar Blind Switch</text>
+    </g>
+
+    <!-- Pill 2: 3-Column Gallery -->
+    <g transform="translate(192, 0)">
+      <rect width="176" height="34" rx="17" fill="#1e1e2e" stroke="url(#badgeBorder)" stroke-width="1" />
+      <text x="16" y="21" class="tag-text">🖼️ 3-Column Gallery</text>
+    </g>
+
+    <!-- Pill 3: Wayland Clipboard -->
+    <g transform="translate(380, 0)">
+      <rect width="172" height="34" rx="17" fill="#1e1e2e" stroke="url(#badgeBorder)" stroke-width="1" />
+      <text x="16" y="21" class="tag-text">📋 Wayland Clipboard</text>
+    </g>
+
+    <!-- Pill 4: Dual-Library Engine -->
+    <g transform="translate(564, 0)">
+      <rect width="160" height="34" rx="17" fill="#1e1e2e" stroke="url(#badgeBorder)" stroke-width="1" />
+      <text x="16" y="21" class="tag-text">🎨 Dual-Library</text>
+    </g>
+
+    <!-- Pill 5: Safe by Default -->
+    <g transform="translate(736, 0)">
+      <rect width="136" height="34" rx="17" fill="#1e1e2e" stroke="url(#badgeBorder)" stroke-width="1" />
+      <text x="16" y="21" class="tag-text">🔒 Safe Trashing</text>
+    </g>
+  </g>
+
+  <!-- Mini Bottom Stats / Metadata Bar -->
+  <g transform="translate(48, 226)">
+    <rect width="864" height="36" rx="8" fill="#181825" fill-opacity="0.6" stroke="#313244" stroke-width="1" />
+    
+    <g transform="translate(24, 22)">
+      <text x="0" y="0" class="stat-label">RUNTIME</text>
+      <text x="60" y="0" class="stat-val">Quickshell QML</text>
+    </g>
+    <line x1="210" y1="8" x2="210" y2="28" stroke="#313244" stroke-width="1" />
+    
+    <g transform="translate(234, 22)">
+      <text x="0" y="0" class="stat-label">CLI PIPELINE</text>
+      <text x="80" y="0" class="stat-val">omarchy theme bg</text>
+    </g>
+    <line x1="470" y1="8" x2="470" y2="28" stroke="#313244" stroke-width="1" />
+    
+    <g transform="translate(494, 22)">
+      <text x="0" y="0" class="stat-label">DAEMON</text>
+      <text x="60" y="0" class="stat-val" fill="#a6e3a1">0 (On Demand)</text>
+    </g>
+    <line x1="680" y1="8" x2="680" y2="28" stroke="#313244" stroke-width="1" />
+
+    <g transform="translate(704, 22)">
+      <text x="0" y="0" class="stat-label">DEBOUNCE</text>
+      <text x="75" y="0" class="stat-val">250ms Instant</text>
+    </g>
+  </g>
+</svg>

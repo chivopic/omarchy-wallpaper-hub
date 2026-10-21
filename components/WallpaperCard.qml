@@ -34,17 +34,17 @@ Item {
     id: cardBackground
     anchors.fill: parent
     radius: Style.cornerRadius
-    color: Qt.rgba(Commons.Color.foreground.r, Commons.Color.foreground.g, Commons.Color.foreground.b, 0.05)
+    color: Qt.rgba(Commons.Color.foreground.r, Commons.Color.foreground.g, Commons.Color.foreground.b, 0.08)
     clip: true
 
     border.color: root.isCurrent
       ? Commons.Color.accent
-      : (cardMouse.containsMouse ? Commons.Color.popups.border : Qt.rgba(Commons.Color.popups.border.r, Commons.Color.popups.border.g, Commons.Color.popups.border.b, 0.4))
+      : (cardMouse.containsMouse ? Commons.Color.accent : Qt.rgba(Commons.Color.popups.border.r, Commons.Color.popups.border.g, Commons.Color.popups.border.b, 0.4))
     border.width: root.isCurrent ? Math.max(2, Style.space(2)) : 1
 
     Behavior on border.color { ColorAnimation { duration: 120 } }
 
-    // Wallpaper Thumbnail
+    // 1. Wallpaper Thumbnail Image
     Image {
       id: thumbImage
       anchors.fill: parent
@@ -58,34 +58,56 @@ Item {
       Behavior on opacity { NumberAnimation { duration: 100 } }
     }
 
-    // Gradient overlay for bottom title legibility
-    Rectangle {
-      anchors.left: parent.left
-      anchors.right: parent.right
-      anchors.bottom: parent.bottom
-      height: Style.space(24)
-      gradient: Gradient {
-        GradientStop { position: 0.0; color: "transparent" }
-        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.75) }
+    // 2. Base MouseArea for Whole Card Click (z: 1)
+    MouseArea {
+      id: cardMouse
+      z: 1
+      anchors.fill: parent
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      acceptedButtons: Qt.LeftButton
+      onWheel: function(wheel) {
+        wheel.accepted = false // Pass wheel to parent Flickable for smooth scrolling
+      }
+      onClicked: {
+        if (wallpaperItem && wallpaperItem.path) {
+          root.applied(wallpaperItem.path)
+        }
       }
     }
 
-    // Name label
-    Text {
+    // 3. Gradient overlay for title legibility (z: 2)
+    Rectangle {
+      z: 2
       anchors.left: parent.left
       anchors.right: parent.right
       anchors.bottom: parent.bottom
-      anchors.margins: Style.space(4)
+      height: Style.space(26)
+      gradient: Gradient {
+        GradientStop { position: 0.0; color: "transparent" }
+        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.8) }
+      }
+    }
+
+    // 4. Name label (z: 3)
+    Text {
+      z: 3
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      anchors.margins: Style.space(5)
       text: wallpaperItem ? (wallpaperItem.name || wallpaperItem.filename || "") : ""
       color: "#ffffff"
       font.family: Style.font.family
       font.pixelSize: Style.font.caption
+      font.bold: root.isCurrent
       elide: Text.ElideRight
       horizontalAlignment: Text.AlignLeft
     }
 
-    // Active Checkmark Badge (Top Left)
+    // 5. Active Checkmark Badge Top Left (z: 4)
     Rectangle {
+      z: 4
       visible: root.isCurrent
       anchors.left: parent.left
       anchors.top: parent.top
@@ -105,8 +127,9 @@ Item {
       }
     }
 
-    // Card Action Buttons (Top Right, visible on hover or if favorite)
+    // 6. Action Buttons Top Right (z: 10 - ALWAYS on top, fully interactive!)
     Row {
+      z: 10
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.margins: Style.space(4)
@@ -120,12 +143,16 @@ Item {
         width: Style.space(20)
         height: Style.space(20)
         radius: Style.space(10)
-        color: favMouse.containsMouse ? Qt.rgba(0, 0, 0, 0.8) : Qt.rgba(0, 0, 0, 0.5)
+        color: favMouse.containsMouse ? Qt.rgba(0, 0, 0, 0.85) : Qt.rgba(0, 0, 0, 0.55)
+        border.color: favMouse.containsMouse ? (root.isFavorite ? "#ff5c7c" : Commons.Color.accent) : "transparent"
+        border.width: 1
+
+        Behavior on color { ColorAnimation { duration: 100 } }
 
         Text {
           anchors.centerIn: parent
           text: root.isFavorite ? "󰋑" : "󰋔"
-          color: root.isFavorite ? "#ff5c7c" : "#ffffff"
+          color: root.isFavorite ? "#ff5c7c" : (favMouse.containsMouse ? Commons.Color.accent : "#ffffff")
           font.family: Style.font.family
           font.pixelSize: Style.font.caption
         }
@@ -135,6 +162,8 @@ Item {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
+          preventStealing: true
+          onWheel: function(wheel) { wheel.accepted = false }
           onClicked: function(mouse) {
             mouse.accepted = true
             if (wallpaperItem && wallpaperItem.id) {
@@ -144,13 +173,17 @@ Item {
         }
       }
 
-      // Locate in file manager button (hover only)
+      // Locate in file manager button
       Rectangle {
         visible: cardMouse.containsMouse
         width: Style.space(20)
         height: Style.space(20)
         radius: Style.space(10)
-        color: locateMouse.containsMouse ? Qt.rgba(0, 0, 0, 0.8) : Qt.rgba(0, 0, 0, 0.5)
+        color: locateMouse.containsMouse ? Qt.rgba(0, 0, 0, 0.85) : Qt.rgba(0, 0, 0, 0.55)
+        border.color: locateMouse.containsMouse ? Commons.Color.accent : "transparent"
+        border.width: 1
+
+        Behavior on color { ColorAnimation { duration: 100 } }
 
         Text {
           anchors.centerIn: parent
@@ -165,6 +198,8 @@ Item {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
+          preventStealing: true
+          onWheel: function(wheel) { wheel.accepted = false }
           onClicked: function(mouse) {
             mouse.accepted = true
             if (wallpaperItem && wallpaperItem.path) {
@@ -174,13 +209,17 @@ Item {
         }
       }
 
-      // Delete Button (only for global items, not active)
+      // Delete Button (only if canDelete)
       Rectangle {
         visible: cardMouse.containsMouse && root.canDelete
         width: Style.space(20)
         height: Style.space(20)
         radius: Style.space(10)
-        color: deleteMouse.containsMouse ? Qt.rgba(180, 20, 40, 0.9) : Qt.rgba(0, 0, 0, 0.5)
+        color: deleteMouse.containsMouse ? Qt.rgba(200, 30, 40, 0.95) : Qt.rgba(0, 0, 0, 0.55)
+        border.color: deleteMouse.containsMouse ? "#ff4d6a" : "transparent"
+        border.width: 1
+
+        Behavior on color { ColorAnimation { duration: 100 } }
 
         Text {
           anchors.centerIn: parent
@@ -195,26 +234,14 @@ Item {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
+          preventStealing: true
+          onWheel: function(wheel) { wheel.accepted = false }
           onClicked: function(mouse) {
             mouse.accepted = true
             if (wallpaperItem && wallpaperItem.id) {
               root.deleted(wallpaperItem.id)
             }
           }
-        }
-      }
-    }
-
-    // Main Click Area to Apply Wallpaper
-    MouseArea {
-      id: cardMouse
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      acceptedButtons: Qt.LeftButton
-      onClicked: {
-        if (wallpaperItem && wallpaperItem.path) {
-          root.applied(wallpaperItem.path)
         }
       }
     }
