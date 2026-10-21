@@ -406,7 +406,7 @@ class WallpaperCatalog:
                 can_delete = True
             elif source_type == "user-theme":
                 item_id = f"theme:{theme_name}:{entry.name}"
-                can_delete = False
+                can_delete = True
             elif source_type == "pictures":
                 item_id = f"pictures:{entry.name}"
                 can_delete = False
@@ -764,11 +764,15 @@ class FileManager:
     @staticmethod
     def delete_wallpaper(item_id: str, catalog: WallpaperCatalog) -> Dict[str, Any]:
         """Safely trashes a plugin-managed global wallpaper using gio trash."""
-        global_items = {it["id"]: it for it in catalog.get_global_items()}
-        if item_id not in global_items:
-            emit_error("PERMISSION_DENIED", "Only plugin-managed global wallpapers can be deleted. Theme wallpapers are protected.")
+        all_items = catalog.get_current_theme_items() + catalog.get_global_items()
+        items_by_id = {it["id"]: it for it in all_items}
+        if item_id not in items_by_id:
+            emit_error("FILE_NOT_FOUND", f"Item not found: {item_id}")
 
-        item = global_items[item_id]
+        item = items_by_id[item_id]
+        if not item.get("canDelete"):
+            emit_error("PERMISSION_DENIED", "Only plugin-managed global or user theme wallpapers can be deleted. Native theme wallpapers are protected.")
+
         target_path = Path(item["path"]).resolve()
 
         # Cannot delete active wallpaper
@@ -776,10 +780,13 @@ class FileManager:
         if current_bg and os.path.samefile(str(target_path), current_bg):
             emit_error("CANNOT_DELETE_ACTIVE_WALLPAPER", "Cannot delete the wallpaper currently in use. Please switch to another wallpaper first.")
 
-        # Ensure path is strictly inside global wallpapers directory
+        # Ensure path is strictly inside global wallpapers directory or user theme backgrounds directory
         global_dir = Paths.global_wallpapers_dir().resolve()
-        if not str(target_path).startswith(str(global_dir)):
-            emit_error("SECURITY_VIOLATION", "Target file is outside the global wallpapers directory")
+        user_theme_dir = Paths.user_theme_backgrounds_dir().resolve()
+        is_global = str(target_path).startswith(str(global_dir))
+        is_user_theme = str(target_path).startswith(str(user_theme_dir))
+        if not (is_global or is_user_theme):
+            emit_error("SECURITY_VIOLATION", "Target file is outside deletable directories")
 
         # Send to trash via gio trash
         try:
