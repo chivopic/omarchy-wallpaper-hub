@@ -15,6 +15,7 @@ Item {
   signal favoriteToggled(string id)
   signal deleted(string id)
   signal revealed(string path)
+  signal monoRequested(string id)
 
   width: cardWidth
   height: cardHeight
@@ -184,6 +185,42 @@ Item {
           }
         }
       }
+      // Convert to Grayscale Button (24x24)
+      Rectangle {
+        visible: cardHover.hovered
+        width: Style.space(24)
+        height: Style.space(24)
+        radius: Style.space(12)
+        color: monoMouse.containsMouse ? Qt.rgba(0, 0, 0, 0.85) : Qt.rgba(0, 0, 0, 0.5)
+        border.color: monoMouse.containsMouse ? Commons.Color.accent : "transparent"
+        border.width: 1
+
+        Behavior on color { ColorAnimation { duration: 100 } }
+
+        Text {
+          anchors.centerIn: parent
+          text: "󰹤"
+          color: monoMouse.containsMouse ? Commons.Color.accent : "#ffffff"
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+        }
+
+        MouseArea {
+          id: monoMouse
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          preventStealing: true
+          onWheel: function(wheel) { wheel.accepted = false }
+          onClicked: function(mouse) {
+            mouse.accepted = true
+            if (wallpaperItem && (wallpaperItem.id || wallpaperItem.path)) {
+              root.monoRequested(wallpaperItem.id || wallpaperItem.path)
+            }
+          }
+        }
+      }
+
 
       // Locate in file manager button (24x24)
       Rectangle {

@@ -5,6 +5,7 @@ import json
 import tempfile
 import struct
 from pathlib import Path
+import subprocess
 
 # Add parent dir to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -166,6 +167,29 @@ class TestFileSafety(unittest.TestCase):
         with self.assertRaises(SystemExit):
             FileManager.delete_wallpaper("native:theme:bg.jpg", catalog)
 
+
+
+class TestFilterManager(unittest.TestCase):
+    def setUp(self):
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.d = Path(self.tmp_dir.name)
+
+    def tearDown(self):
+        self.tmp_dir.cleanup()
+
+    def test_apply_magick_filter(self):
+        import backend
+        # Create a small valid PNG
+        p = self.d / "test_color.png"
+        subprocess.run(["magick", "-size", "100x100", "xc:red", str(p)], check=True)
+        self.assertTrue(p.is_file())
+
+        # Convert to grayscale
+        backend.FilterManager.apply_magick_filter(p, saturation=0, brightness=100)
+        fmt, width, height, file_size = ImageValidator.parse_header(p)
+        self.assertEqual(fmt, "png")
+        self.assertEqual(width, 100)
+        self.assertEqual(height, 100)
 
 if __name__ == "__main__":
     unittest.main()

@@ -24,6 +24,10 @@ BarWidget {
   property string statusMessage: ""
   property bool isBusy: false
 
+  property bool autoMono: false
+  property int filterSaturation: 0
+  property int filterBrightness: 100
+
   // UI state
   property bool popupOpen: false
   property bool contextMenuOpen: false
@@ -171,13 +175,31 @@ BarWidget {
     delProc.command = ["/usr/bin/python3", "-I", root.scriptPath, "delete", id]
     delProc.running = true
   }
+  function convertToMono(targetId, sat, bri) {
+    var s = (sat !== undefined) ? sat : root.filterSaturation
+    var b = (bri !== undefined) ? bri : root.filterBrightness
+    isBusy = true
+    monoProc.command = [
+      "/usr/bin/python3", "-I", root.scriptPath,
+      "convert-mono", targetId || "current",
+      "--saturation", String(s),
+      "--brightness", String(b),
+      "--target-scope", (root.currentScope === "global" ? "global" : "theme")
+    ]
+    monoProc.running = true
+  }
 
   function importClipboard() {
     isBusy = true
-    clipProc.command = ["/usr/bin/python3", "-I", root.scriptPath, "import-clipboard", "--target", "global"]
+    var cmd = ["/usr/bin/python3", "-I", root.scriptPath, "import-clipboard", "--target", "global"]
+    if (root.autoMono) {
+      cmd.push("--mono")
+      cmd.push("--saturation", String(root.filterSaturation))
+      cmd.push("--brightness", String(root.filterBrightness))
+    }
+    clipProc.command = cmd
     clipProc.running = true
   }
-
   function pickAndImportFile() {
     pickFileProc.running = true
   }
@@ -369,12 +391,17 @@ BarWidget {
         try {
           var res = JSON.parse(text)
           if (res && res.success && res.data && res.data.selected) {
-            root.isBusy = true
-            importFileProc.command = [
+            var cmd = [
               "/usr/bin/python3", "-I", root.scriptPath,
               "import-file", res.data.selected,
               "--target", "global"
             ]
+            if (root.autoMono) {
+              cmd.push("--mono")
+              cmd.push("--saturation", String(root.filterSaturation))
+              cmd.push("--brightness", String(root.filterBrightness))
+            }
+            importFileProc.command = cmd
             importFileProc.running = true
           }
         } catch (e) {}
@@ -396,6 +423,26 @@ BarWidget {
             root.refreshAll()
           } else if (res && res.error) {
             root.showToast("导入失败: " + res.error.message)
+          }
+        } catch (e) {}
+      }
+    }
+  }
+
+  // 11. Mono / Grayscale Conversion Process
+  Process {
+    id: monoProc
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: function() {
+        root.isBusy = false
+        try {
+          var res = JSON.parse(text)
+          if (res && res.success) {
+            root.refreshAll()
+            root.showToast("已转换为暗夜黑白壁纸并应用", false)
+          } else if (res && res.error) {
+            root.showToast("转换失败: " + res.error.message, true)
           }
         } catch (e) {}
       }
@@ -448,6 +495,11 @@ BarWidget {
     favCount: root.favCount
     statusMessage: root.statusMessage
     isBusy: root.isBusy
+    autoMono: root.autoMono
+    filterSaturation: root.filterSaturation
+    filterBrightness: root.filterBrightness
+    onConvertCurrentToMono: root.convertToMono("current")
+    onConvertToMono: function(id) { root.convertToMono(id) }
 
     onScopeSelected: function(scope) {
       root.loadList(scope)
@@ -496,6 +548,29 @@ BarWidget {
 
       PanelSeparator {
         width: parent.width
+      }
+
+      Button {
+        width: parent.width
+        text: "从剪贴板导入 (暗夜黑白)"
+        iconText: "󰹤"
+        onClicked: {
+          root.contextMenuOpen = false
+          var old = root.autoMono
+          root.autoMono = true
+          root.importClipboard()
+          root.autoMono = old
+        }
+      }
+
+      Button {
+        width: parent.width
+        text: "将当前壁纸转为黑白"
+        iconText: "󰄄"
+        onClicked: {
+          root.contextMenuOpen = false
+          root.convertToMono("current")
+        }
       }
 
       Button {

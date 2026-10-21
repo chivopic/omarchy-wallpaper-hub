@@ -604,7 +604,7 @@ class WallpaperController:
 
 class ImportManager:
     @staticmethod
-    def import_clipboard(target_scope: str = "global", auto_apply: bool = True) -> Dict[str, Any]:
+    def import_clipboard(target_scope: str = "global", auto_apply: bool = True, mono: bool = False, saturation: int = 0, brightness: int = 100) -> Dict[str, Any]:
         # 1. Query clipboard mime types via wl-paste -l
         try:
             res = subprocess.run(["wl-paste", "--list-types"], capture_output=True, text=True, timeout=3)
@@ -660,13 +660,13 @@ class ImportManager:
                 emit_error("CLIPBOARD_ERROR", f"Failed to dump clipboard: {e}")
 
         try:
-            return ImportManager._save_validated_file(tmp_path, target_scope, auto_apply, ext, origin="clipboard")
+            return ImportManager._save_validated_file(tmp_path, target_scope, auto_apply, ext, origin="clipboard", mono=mono, saturation=saturation, brightness=brightness)
         finally:
             if tmp_path.is_file():
                 tmp_path.unlink(missing_ok=True)
 
     @staticmethod
-    def import_file(src_path: str, target_scope: str = "global", auto_apply: bool = True, origin: str = "file") -> Dict[str, Any]:
+    def import_file(src_path: str, target_scope: str = "global", auto_apply: bool = True, origin: str = "file", mono: bool = False, saturation: int = 0, brightness: int = 100) -> Dict[str, Any]:
         src = Path(src_path).resolve()
         if not src.is_file():
             emit_error("FILE_NOT_FOUND", f"Source file not found: {src}")
@@ -677,10 +677,22 @@ class ImportManager:
         if ext not in SUPPORTED_EXTS:
             emit_error("UNSUPPORTED_FORMAT", f"Format {ext} is not supported in V1 (PNG, JPEG, WebP only)")
 
-        return ImportManager._save_validated_file(src, target_scope, auto_apply, ext, origin=origin)
+        if mono:
+            with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp_file:
+                tmp_path = Path(tmp_file.name)
+            try:
+                shutil.copy2(src, tmp_path)
+                return ImportManager._save_validated_file(tmp_path, target_scope, auto_apply, ext, origin=origin, mono=True, saturation=saturation, brightness=brightness)
+            finally:
+                if tmp_path.is_file():
+                    tmp_path.unlink(missing_ok=True)
+        else:
+            return ImportManager._save_validated_file(src, target_scope, auto_apply, ext, origin=origin)
 
     @staticmethod
-    def _save_validated_file(src_path: Path, target_scope: str, auto_apply: bool, ext: str, origin: str) -> Dict[str, Any]:
+    def _save_validated_file(src_path: Path, target_scope: str, auto_apply: bool, ext: str, origin: str, mono: bool = False, saturation: int = 0, brightness: int = 100) -> Dict[str, Any]:
+        if mono:
+            FilterManager.apply_magick_filter(src_path, saturation=saturation, brightness=brightness)
         # Validate image
         try:
             fmt, width, height, file_size = ImageValidator.parse_header(src_path)
@@ -831,6 +843,135 @@ class FileManager:
             pass
         return None
 
+class FilterManager:
+    @staticmethod
+    def apply_magick_filter(img_path: Path, saturation: int = 0, brightness: int = 100):
+        cmd = ["magick", str(img_path.resolve())]
+        if saturation == 0:
+            if brightness == 100:
+                cmd.extend(["-colorspace", "Gray"])
+            else:
+                cmd.extend(["-colorspace", "Gray", "-modulate", f"{brightness},0"])
+        else:
+            cmd.extend(["-modulate", f"{brightness},{saturation}"])
+        cmd.append(str(img_path.resolve()))
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        if res.returncode != 0:
+            emit_error("CONVERT_FAILED", f"ImageMagick failed: {res.stderr.strip() or 'unknown error'}")
+
+    @staticmethod
+    def convert_mono(
+        target: str,
+        catalog: WallpaperCatalog,
+        saturation: int = 0,
+        brightness: int = 100,
+        target_scope: str = "theme",
+        auto_apply: bool = True
+    ) -> Dict[str, Any]:
+        target_path: Optional[Path] = None
+        if target == "current":
+            current_path = Paths.current_background_path()
+            if current_path:
+                target_path = Path(current_path)
+        else:
+            target_p = Path(target)
+            if target_p.is_file():
+                target_path = target_p
+            else:
+                all_items = catalog.get_current_theme_items() + catalog.get_global_items()
+                for it in all_items:
+                    if it["id"] == target:
+                        target_path = Path(it["path"])
+                        break
+
+        if not target_path or not target_path.is_file():
+            emit_error("FILE_NOT_FOUND", f"Target image not found: {target}")
+
+        theme_name = Paths.current_theme_name()
+        if target_scope == "theme":
+            dest_dir = Paths.user_theme_backgrounds_dir(theme_name)
+            source_type = "user-theme"
+        else:
+            dest_dir = Paths.global_wallpapers_dir()
+            source_type = "global"
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        ext = target_path.suffix.lower()
+        if ext == ".jpeg":
+            ext = ".jpg"
+        stem = target_path.stem
+        if stem.endswith("-mono"):
+            stem = stem[:-5]
+
+        if saturation == 0 and brightness == 100:
+            dest_filename = f"{stem}-mono{ext}"
+        else:
+            dest_filename = f"{stem}-s{saturation}-b{brightness}{ext}"
+
+        dest_path = dest_dir / dest_filename
+
+        # Convert to dest_path
+        cmd = ["magick", str(target_path.resolve())]
+        if saturation == 0:
+            if brightness == 100:
+                cmd.extend(["-colorspace", "Gray"])
+            else:
+                cmd.extend(["-colorspace", "Gray", "-modulate", f"{brightness},0"])
+        else:
+            cmd.extend(["-modulate", f"{brightness},{saturation}"])
+        cmd.append(str(dest_path.resolve()))
+
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            if res.returncode != 0:
+                emit_error("CONVERT_FAILED", f"ImageMagick failed: {res.stderr.strip() or 'unknown error'}")
+        except Exception as e:
+            emit_error("CONVERT_FAILED", f"Failed to execute magick: {e}")
+
+        # Metadata & thumbnail
+        metadata = MetadataStore()
+        item_id = f"theme:{theme_name}:{dest_filename}" if source_type == "user-theme" else f"global:{dest_filename}"
+        content_hash = ImageValidator.compute_hash(dest_path)
+        fmt, width, height, file_size = ImageValidator.parse_header(dest_path)
+
+        metadata.update_item(item_id, {
+            "id": item_id,
+            "source": source_type,
+            "path": str(dest_path.resolve()),
+            "theme": theme_name if source_type == "user-theme" else "",
+            "favorite": metadata.is_favorite(item_id),
+            "hash": content_hash,
+            "importedAt": int(dest_path.stat().st_mtime),
+            "origin": "filter"
+        })
+
+        thumb = ThumbnailManager.get_thumbnail_path(dest_path)
+
+        result_item = {
+            "id": item_id,
+            "name": dest_path.stem,
+            "filename": dest_filename,
+            "path": str(dest_path.resolve()),
+            "thumbnail": str(thumb) if thumb.is_file() else "",
+            "source": source_type,
+            "theme": theme_name if source_type == "user-theme" else "",
+            "favorite": metadata.is_favorite(item_id),
+            "width": width,
+            "height": height,
+            "size": file_size,
+            "canDelete": True
+        }
+
+        applied = False
+        if auto_apply:
+            apply_res = WallpaperController.apply_wallpaper(str(dest_path.resolve()))
+            applied = apply_res.get("applied", False)
+
+        return {
+            "item": result_item,
+            "applied": applied
+        }
+
 
 def main():
     parser = argparse.ArgumentParser(description="Omarchy Wallpaper Hub Backend Engine")
@@ -863,12 +1004,26 @@ def main():
     clip_p = subparsers.add_parser("import-clipboard", help="Import wallpaper from clipboard")
     clip_p.add_argument("--target", choices=["global", "theme"], default="global")
     clip_p.add_argument("--no-apply", action="store_true", help="Do not apply automatically")
+    clip_p.add_argument("--mono", action="store_true", help="Convert to grayscale on import")
+    clip_p.add_argument("--saturation", type=int, default=0, help="Saturation (0=mono, 100=color)")
+    clip_p.add_argument("--brightness", type=int, default=100, help="Brightness percentage (50-100)")
 
     # import-file
     file_p = subparsers.add_parser("import-file", help="Import wallpaper from file")
     file_p.add_argument("path", help="Path to image file")
     file_p.add_argument("--target", choices=["global", "theme"], default="global")
     file_p.add_argument("--no-apply", action="store_true", help="Do not apply automatically")
+    file_p.add_argument("--mono", action="store_true", help="Convert to grayscale on import")
+    file_p.add_argument("--saturation", type=int, default=0, help="Saturation (0=mono, 100=color)")
+    file_p.add_argument("--brightness", type=int, default=100, help="Brightness percentage (50-100)")
+
+    # convert-mono
+    mono_p = subparsers.add_parser("convert-mono", help="Convert wallpaper to grayscale / dark mono")
+    mono_p.add_argument("target", help="Item ID, absolute path, or 'current'")
+    mono_p.add_argument("--saturation", type=int, default=0, help="Saturation (0=mono, 100=color)")
+    mono_p.add_argument("--brightness", type=int, default=100, help="Brightness percentage (50-100)")
+    mono_p.add_argument("--target-scope", choices=["theme", "global"], default="theme")
+    mono_p.add_argument("--no-apply", action="store_true", help="Do not apply automatically")
 
     # favorite
     fav_p = subparsers.add_parser("favorite", help="Toggle or set favorite")
@@ -921,14 +1076,37 @@ def main():
     elif args.command == "random":
         emit_success(WallpaperController.random(catalog, args.scope))
 
+    elif args.command == "convert-mono":
+        auto_apply = not args.no_apply
+        emit_success(FilterManager.convert_mono(
+            args.target,
+            catalog,
+            saturation=args.saturation,
+            brightness=args.brightness,
+            target_scope=args.target_scope,
+            auto_apply=auto_apply
+        ))
+
     elif args.command == "import-clipboard":
         auto_apply = not args.no_apply
-        emit_success(ImportManager.import_clipboard(args.target, auto_apply))
+        emit_success(ImportManager.import_clipboard(
+            args.target,
+            auto_apply,
+            mono=getattr(args, "mono", False),
+            saturation=getattr(args, "saturation", 0),
+            brightness=getattr(args, "brightness", 100)
+        ))
 
     elif args.command == "import-file":
         auto_apply = not args.no_apply
-        emit_success(ImportManager.import_file(args.path, args.target, auto_apply))
-
+        emit_success(ImportManager.import_file(
+            args.path,
+            args.target,
+            auto_apply,
+            mono=getattr(args, "mono", False),
+            saturation=getattr(args, "saturation", 0),
+            brightness=getattr(args, "brightness", 100)
+        ))
     elif args.command == "favorite":
         if args.set:
             metadata.set_favorite(args.id, True)

@@ -20,6 +20,7 @@ Item {
   signal favoriteToggled(string id)
   signal deleted(string id)
   signal revealed(string path)
+  signal monoRequested(string id)
   signal importClipboardRequested()
   signal importFileRequested()
 
@@ -113,6 +114,7 @@ Item {
           onFavoriteToggled: function(id) { root.favoriteToggled(id) }
           onDeleted: function(id) { root.deleted(id) }
           onRevealed: function(path) { root.revealed(path) }
+          onMonoRequested: function(id) { root.monoRequested(id) }
         }
       }
     }

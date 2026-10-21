@@ -18,6 +18,11 @@ PopupCard {
   property int favCount: 0
   property string statusMessage: ""
   property bool isBusy: false
+  property bool autoMono: false
+  property int filterSaturation: 0
+  property int filterBrightness: 100
+  property bool filterToolOpen: false
+
 
   signal scopeSelected(string scope)
   signal applyWallpaper(string path)
@@ -28,6 +33,8 @@ PopupCard {
   signal importFile()
   signal randomWallpaper()
   signal refreshCatalog()
+  signal convertCurrentToMono()
+  signal convertToMono(string id)
 
   contentWidth: fittedContentWidth(Style.space(430))
   contentHeight: fittedContentHeight(panelCol.implicitHeight)
@@ -99,6 +106,14 @@ PopupCard {
           spacing: Style.space(6)
 
           PanelActionButton {
+            iconText: "󰹤"
+            tooltipText: "暗夜黑白与滤镜调节"
+            size: Style.space(24)
+            hasCursor: root.filterToolOpen
+            onClicked: root.filterToolOpen = !root.filterToolOpen
+          }
+
+          PanelActionButton {
             iconText: "󰒝"
             tooltipText: "随机换壁纸 (当前分类)"
             size: Style.space(24)
@@ -132,6 +147,92 @@ PopupCard {
       PanelSeparator {
         width: parent.width
       }
+      // Expandable Grayscale / Mono Adjustment Tool Drawer
+      Item {
+        visible: root.filterToolOpen
+        width: parent.width
+        height: root.filterToolOpen ? Style.space(68) : 0
+        implicitHeight: root.filterToolOpen ? Style.space(68) : 0
+        clip: true
+
+        Behavior on height { NumberAnimation { duration: 150 } }
+
+        Rectangle {
+          anchors.fill: parent
+          radius: Style.cornerRadius
+          color: Qt.rgba(Commons.Color.foreground.r, Commons.Color.foreground.g, Commons.Color.foreground.b, 0.05)
+          border.color: Commons.Color.popups.border
+          border.width: 1
+
+          Column {
+            anchors.fill: parent
+            anchors.margins: Style.space(6)
+            spacing: Style.space(4)
+
+            // Row 1: Saturation / Grayscale
+            Row {
+              spacing: Style.space(6)
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "灰度饱和度:"
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Qt.rgba(Commons.Color.foreground.r, Commons.Color.foreground.g, Commons.Color.foreground.b, 0.7)
+              }
+
+              ButtonGroup {
+                height: Style.space(22)
+                value: String(root.filterSaturation)
+                options: [
+                  { value: "0", label: "纯黑白 0%" },
+                  { value: "30", label: "微冷 30%" },
+                  { value: "60", label: "低彩 60%" },
+                  { value: "100", label: "原彩 100%" }
+                ]
+                onChanged: function(val) {
+                  root.filterSaturation = Number(val)
+                }
+              }
+            }
+
+            // Row 2: Dark Dimming & Quick Action
+            Row {
+              width: parent.width
+              spacing: Style.space(6)
+
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "暗夜调光:"
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Qt.rgba(Commons.Color.foreground.r, Commons.Color.foreground.g, Commons.Color.foreground.b, 0.7)
+              }
+
+              ButtonGroup {
+                height: Style.space(22)
+                value: String(root.filterBrightness)
+                options: [
+                  { value: "100", label: "正常 100%" },
+                  { value: "85", label: "柔和 85%" },
+                  { value: "70", label: "暗夜 70%" }
+                ]
+                onChanged: function(val) {
+                  root.filterBrightness = Number(val)
+                }
+              }
+
+              Button {
+                text: "应用到当前壁纸"
+                iconText: "󰄄"
+                bordered: true
+                height: Style.space(22)
+                onClicked: root.convertCurrentToMono()
+              }
+            }
+          }
+        }
+      }
+
 
       // 3. Main Grid Area
       Item {
@@ -151,6 +252,7 @@ PopupCard {
           onRevealed: function(path) { root.revealPath(path) }
           onImportClipboardRequested: root.importClipboard()
           onImportFileRequested: root.importFile()
+          onMonoRequested: function(id) { root.convertToMono(id) }
         }
 
         // Loading/Busy overlay indicator
@@ -219,6 +321,13 @@ PopupCard {
             tooltipText: "选择本地图片导入全局库"
             bordered: true
             onClicked: root.importFile()
+          }
+          Button {
+            text: root.autoMono ? "暗夜黑白模式: 开" : "暗夜黑白: 关"
+            iconText: "󰹤"
+            tooltipText: root.autoMono ? "暗夜黑白模式已开启：导入时自动转为黑白壁纸" : "点击开启：导入时自动转为暗色黑白壁纸"
+            bordered: true
+            onClicked: root.autoMono = !root.autoMono
           }
         }
 
