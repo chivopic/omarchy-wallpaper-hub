@@ -22,6 +22,9 @@ PopupCard {
   property int filterSaturation: 0
   property int filterBrightness: 100
   property bool filterToolOpen: false
+  property bool adjustModalOpen: false
+  property var adjustTargetItem: null
+
 
 
   signal scopeSelected(string scope)
@@ -35,6 +38,7 @@ PopupCard {
   signal refreshCatalog()
   signal convertCurrentToMono()
   signal convertToMono(string id)
+  signal convertAndApplyAdjusted(string targetId, int sat, int bri, bool autoApply)
 
   contentWidth: fittedContentWidth(Style.space(430))
   contentHeight: fittedContentHeight(panelCol.implicitHeight)
@@ -107,10 +111,15 @@ PopupCard {
 
           PanelActionButton {
             iconText: "󰹤"
-            tooltipText: "暗夜黑白与滤镜调节"
+            tooltipText: "调节当前壁纸灰度与暗度"
             size: Style.space(24)
-            hasCursor: root.filterToolOpen
-            onClicked: root.filterToolOpen = !root.filterToolOpen
+            onClicked: {
+              root.openAdjustModal({
+                name: root.currentName || "当前壁纸",
+                path: "",
+                thumbnail: ""
+              })
+            }
           }
 
           PanelActionButton {
@@ -253,6 +262,7 @@ PopupCard {
           onImportClipboardRequested: root.importClipboard()
           onImportFileRequested: root.importFile()
           onMonoRequested: function(id) { root.convertToMono(id) }
+          onAdjustRequested: function(item) { root.openAdjustModal(item) }
         }
 
         // Loading/Busy overlay indicator
@@ -368,6 +378,28 @@ PopupCard {
             onClicked: root.refreshCatalog()
           }
         }
+      }
+    }
+
+    function openAdjustModal(item) {
+      adjustTargetItem = item
+      adjustModalOpen = true
+    }
+
+    WallpaperAdjustModal {
+      id: adjustModal
+      anchors.fill: parent
+      z: 100
+      open: root.adjustModalOpen
+      targetItem: root.adjustTargetItem
+      saturation: root.filterSaturation
+      brightness: root.filterBrightness
+      onApplyAdjusted: function(targetId, sat, bri, autoApply) {
+        root.adjustModalOpen = false
+        root.convertAndApplyAdjusted(targetId, sat, bri, autoApply)
+      }
+      onCancel: {
+        root.adjustModalOpen = false
       }
     }
   }

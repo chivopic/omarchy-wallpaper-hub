@@ -21,6 +21,7 @@ Item {
   signal deleted(string id)
   signal revealed(string path)
   signal monoRequested(string id)
+  signal adjustRequested(var item)
   signal importClipboardRequested()
   signal importFileRequested()
 
@@ -115,6 +116,7 @@ Item {
           onDeleted: function(id) { root.deleted(id) }
           onRevealed: function(path) { root.revealed(path) }
           onMonoRequested: function(id) { root.monoRequested(id) }
+          onAdjustRequested: function(item) { root.adjustRequested(item) }
         }
       }
     }

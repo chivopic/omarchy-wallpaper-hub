@@ -175,17 +175,22 @@ BarWidget {
     delProc.command = ["/usr/bin/python3", "-I", root.scriptPath, "delete", id]
     delProc.running = true
   }
-  function convertToMono(targetId, sat, bri) {
+  function convertToMono(targetId, sat, bri, autoApply) {
     var s = (sat !== undefined) ? sat : root.filterSaturation
     var b = (bri !== undefined) ? bri : root.filterBrightness
+    var applyFlag = (autoApply !== false)
     isBusy = true
-    monoProc.command = [
+    var cmd = [
       "/usr/bin/python3", "-I", root.scriptPath,
       "convert-mono", targetId || "current",
       "--saturation", String(s),
       "--brightness", String(b),
       "--target-scope", (root.currentScope === "global" ? "global" : "theme")
     ]
+    if (!applyFlag) {
+      cmd.push("--no-apply")
+    }
+    monoProc.command = cmd
     monoProc.running = true
   }
 
@@ -500,6 +505,9 @@ BarWidget {
     filterBrightness: root.filterBrightness
     onConvertCurrentToMono: root.convertToMono("current")
     onConvertToMono: function(id) { root.convertToMono(id) }
+    onConvertAndApplyAdjusted: function(targetId, sat, bri, autoApply) {
+      root.convertToMono(targetId, sat, bri, autoApply)
+    }
 
     onScopeSelected: function(scope) {
       root.loadList(scope)

@@ -16,6 +16,7 @@ Item {
   signal deleted(string id)
   signal revealed(string path)
   signal monoRequested(string id)
+  signal adjustRequested(var item)
 
   width: cardWidth
   height: cardHeight
@@ -77,9 +78,9 @@ Item {
       }
       onClicked: function(mouse) {
         if (mouse.button === Qt.RightButton) {
-          // Right-click shortcut: reveal in file manager
-          if (wallpaperItem && wallpaperItem.path) {
-            root.revealed(wallpaperItem.path)
+          // Right-click: open adjustment modal
+          if (wallpaperItem) {
+            root.adjustRequested(wallpaperItem)
           }
         } else if (mouse.button === Qt.LeftButton) {
           if (wallpaperItem && wallpaperItem.path) {
@@ -214,8 +215,8 @@ Item {
           onWheel: function(wheel) { wheel.accepted = false }
           onClicked: function(mouse) {
             mouse.accepted = true
-            if (wallpaperItem && (wallpaperItem.id || wallpaperItem.path)) {
-              root.monoRequested(wallpaperItem.id || wallpaperItem.path)
+            if (wallpaperItem) {
+              root.adjustRequested(wallpaperItem)
             }
           }
         }
