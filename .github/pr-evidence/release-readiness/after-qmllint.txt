@@ -1,0 +1,54 @@
+Warning: WallpaperPanel.qml:76:37: Member "family" not found on type "QObject" [missing-property]
+            font.family: Style.font.family
+                                    ^^^^^^
+Warning: WallpaperPanel.qml:77:40: Member "icon" not found on type "QObject" [missing-property]
+            font.pixelSize: Style.font.icon
+                                       ^^^^
+Warning: WallpaperPanel.qml:84:37: Member "family" not found on type "QObject" [missing-property]
+            font.family: Style.font.family
+                                    ^^^^^^
+Warning: WallpaperPanel.qml:85:40: Member "title" not found on type "QObject" [missing-property]
+            font.pixelSize: Style.font.title
+                                       ^^^^^
+Warning: WallpaperPanel.qml:97:48: Member "border" not found on type "QObject" [missing-property]
+            border.color: Commons.Color.popups.border
+                                               ^^^^^^
+Warning: WallpaperPanel.qml:104:39: Member "family" not found on type "QObject" [missing-property]
+              font.family: Style.font.family
+                                      ^^^^^^
+Warning: WallpaperPanel.qml:105:42: Member "caption" not found on type "QObject" [missing-property]
+              font.pixelSize: Style.font.caption
+                                         ^^^^^^^
+Warning: WallpaperPanel.qml:177:46: Member "border" not found on type "QObject" [missing-property]
+          border.color: Commons.Color.popups.border
+                                             ^^^^^^
+Warning: WallpaperPanel.qml:191:41: Member "family" not found on type "QObject" [missing-property]
+                font.family: Style.font.family
+                                        ^^^^^^
+Warning: WallpaperPanel.qml:192:44: Member "caption" not found on type "QObject" [missing-property]
+                font.pixelSize: Style.font.caption
+                                           ^^^^^^^
+Warning: WallpaperPanel.qml:219:41: Member "family" not found on type "QObject" [missing-property]
+                font.family: Style.font.family
+                                        ^^^^^^
+Warning: WallpaperPanel.qml:220:44: Member "caption" not found on type "QObject" [missing-property]
+                font.pixelSize: Style.font.caption
+                                           ^^^^^^^
+Warning: WallpaperPanel.qml:286:39: Member "family" not found on type "QObject" [missing-property]
+              font.family: Style.font.family
+                                      ^^^^^^
+Warning: WallpaperPanel.qml:287:42: Member "icon" not found on type "QObject" [missing-property]
+              font.pixelSize: Style.font.icon
+                                         ^^^^
+Warning: WallpaperPanel.qml:301:39: Member "family" not found on type "QObject" [missing-property]
+              font.family: Style.font.family
+                                      ^^^^^^
+Warning: WallpaperPanel.qml:302:42: Member "bodySmall" not found on type "QObject" [missing-property]
+              font.pixelSize: Style.font.bodySmall
+                                         ^^^^^^^^^
+Warning: WallpaperPanel.qml:354:35: Member "family" not found on type "QObject" [missing-property]
+          font.family: Style.font.family
+                                  ^^^^^^
+Warning: WallpaperPanel.qml:355:38: Member "bodySmall" not found on type "QObject" [missing-property]
+          font.pixelSize: Style.font.bodySmall
+                                     ^^^^^^^^^

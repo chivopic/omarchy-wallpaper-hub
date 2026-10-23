@@ -227,6 +227,35 @@ git clone https://github.com/chivopic/omarchy-wallpaper-hub.git ~/.config/omarch
 omarchy plugin enable io.github.chivopic.wallpaper-hub right
 ```
 
+### 依赖
+
+Omarchy 已提供 Python 3 和 `omarchy` 命令。请按需使用 Omarchy 软件包助手安装插件功能所需工具：
+
+```bash
+omarchy pkg add wl-clipboard zenity imagemagick libvips xdg-utils glib2
+```
+
+| 软件包 / 命令 | 用途 | 缺少时的行为 |
+| --- | --- | --- |
+| `wl-clipboard`（`wl-paste`） | 导入 Wayland 剪贴板中的图片 | 剪贴板导入会报错；仍可使用本地文件导入。 |
+| `zenity` | 在图形界面选择本地图片 | 文件选择器无法打开；可改用 CLI 的 `import-file` 命令并传入路径。 |
+| `imagemagick`（`magick`） | 调节饱和度和亮度 | 壁纸调节及黑白转换会报错。 |
+| `libvips`（`vipsthumbnail`） | 生成画廊缩略图 | 跳过缩略图生成；壁纸仍可正常使用。 |
+| `glib2`（`gio`） | 将插件管理的图片移入系统回收站 | 删除会报错，图片会保留在原处。 |
+| `xdg-utils`（`xdg-open`） | 在文件管理器中打开壁纸目录 | 打开目录的操作无法启动文件管理器。 |
+
+这些软件包提供可选集成功能，插件不会自动安装系统软件包。以上名称均可从 Omarchy 支持的 Arch 软件包源安装。
+
+### 卸载
+
+使用 Omarchy 移除插件：
+
+```bash
+omarchy plugin remove io.github.chivopic.wallpaper-hub --yes
+```
+
+卸载插件会保留已管理的壁纸、收藏元数据和缩略图缓存。若要自行清除这些数据，可分别删除 `~/.local/share/omarchy-wallpaper-hub/` 和 `~/.cache/omarchy-wallpaper-hub/`。
+
 ---
 
 ## 🧪 自动化测试验证

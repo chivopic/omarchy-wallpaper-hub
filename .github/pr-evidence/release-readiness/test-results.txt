@@ -1,0 +1,22 @@
+Wallpaper Hub release-readiness checks
+Rendered excerpts from captured command output — test evidence, not a UI screenshot
+
+BEFORE · main branch Python suite
+Ran 11 tests ... OK
+[FILE_NOT_FOUND] Item not found: global:active.png
+[FILE_NOT_FOUND] Item not found: native:theme:bg.jpg
+
+AFTER · fix/release-readiness Python suite
+Ran 12 tests ... OK
+[CANNOT_DELETE_ACTIVE_WALLPAPER] ... currently in use.
+[PERMISSION_DENIED] ... Native theme wallpapers are protected.
+gio trash: not called in either protection test
+Concurrent metadata writer regression: PASS
+
+BEFORE · qmllint
+WallpaperPanel.qml:117: Member "openAdjustModal" not found on type "WallpaperPanel"
+WallpaperPanel.qml:265: Member "openAdjustModal" not found on type "WallpaperPanel"
+
+AFTER · qmllint
+No missing openAdjustModal member warning
+Existing dynamic theme singleton warnings remain

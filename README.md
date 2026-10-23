@@ -211,6 +211,35 @@ git clone https://github.com/chivopic/omarchy-wallpaper-hub.git ~/.config/omarch
 omarchy plugin enable io.github.chivopic.wallpaper-hub right
 ```
 
+### Dependencies
+
+Omarchy already provides Python 3 and the `omarchy` command. Install the optional feature tools you need with the Omarchy package helper:
+
+```bash
+omarchy pkg add wl-clipboard zenity imagemagick libvips xdg-utils glib2
+```
+
+| Package / command | Used for | If it is missing |
+| --- | --- | --- |
+| `wl-clipboard` (`wl-paste`) | Importing images from the Wayland clipboard | Clipboard import reports an error; file import still works. |
+| `zenity` | Choosing a local image from the GUI | The file picker cannot open; pass a path to the CLI `import-file` command instead. |
+| `imagemagick` (`magick`) | Saturation and brightness adjustments | Image adjustment and monochrome conversion report an error. |
+| `libvips` (`vipsthumbnail`) | Generating small gallery thumbnails | Thumbnail generation is skipped; the wallpaper remains available. |
+| `glib2` (`gio`) | Moving managed images to the system trash | Delete reports an error and leaves the image in place. |
+| `xdg-utils` (`xdg-open`) | Opening the wallpaper directory in the file manager | The folder action cannot launch a file manager. |
+
+These packages are optional integrations; the plugin does not install system packages automatically. The package names above are available in the supported Omarchy/Arch package set.
+
+### Uninstall
+
+Remove the plugin with Omarchy:
+
+```bash
+omarchy plugin remove io.github.chivopic.wallpaper-hub --yes
+```
+
+Uninstalling the plugin leaves managed wallpapers, favorites metadata, and the thumbnail cache in place. Remove those separately only if you want to delete your data: `~/.local/share/omarchy-wallpaper-hub/` and `~/.cache/omarchy-wallpaper-hub/`.
+
 ---
 
 ## 🧪 Testing

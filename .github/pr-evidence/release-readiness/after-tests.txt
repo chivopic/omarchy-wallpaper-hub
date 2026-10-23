@@ -1,0 +1,19 @@
+test_cannot_delete_active_wallpaper (test_backend.TestFileSafety.test_cannot_delete_active_wallpaper) ... [CANNOT_DELETE_ACTIVE_WALLPAPER] Cannot delete the wallpaper currently in use. Please switch to another wallpaper first.
+ok
+test_cannot_delete_theme_wallpaper (test_backend.TestFileSafety.test_cannot_delete_theme_wallpaper) ... [PERMISSION_DENIED] Only plugin-managed global or user theme wallpapers can be deleted. Native theme wallpapers are protected.
+ok
+test_apply_magick_filter (test_backend.TestFilterManager.test_apply_magick_filter) ... ok
+test_reject_corrupt (test_backend.TestImageValidator.test_reject_corrupt) ... ok
+test_reject_gif (test_backend.TestImageValidator.test_reject_gif) ... ok
+test_reject_oversized_resolution (test_backend.TestImageValidator.test_reject_oversized_resolution) ... ok
+test_valid_jpeg (test_backend.TestImageValidator.test_valid_jpeg) ... ok
+test_valid_png (test_backend.TestImageValidator.test_valid_png) ... ok
+test_concurrent_writers_preserve_favorites_and_item_updates (test_backend.TestMetadataStore.test_concurrent_writers_preserve_favorites_and_item_updates) ... ok
+test_corruption_recovery (test_backend.TestMetadataStore.test_corruption_recovery) ... ok
+test_save_and_load (test_backend.TestMetadataStore.test_save_and_load) ... ok
+test_toggle_favorite (test_backend.TestMetadataStore.test_toggle_favorite) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.029s
+
+OK

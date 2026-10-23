@@ -25,6 +25,10 @@ PopupCard {
   property bool adjustModalOpen: false
   property var adjustTargetItem: null
 
+  function openAdjustModal(item) {
+    adjustTargetItem = item
+    adjustModalOpen = true
+  }
 
 
   signal scopeSelected(string scope)
@@ -379,11 +383,6 @@ PopupCard {
           }
         }
       }
-    }
-
-    function openAdjustModal(item) {
-      adjustTargetItem = item
-      adjustModalOpen = true
     }
 
     WallpaperAdjustModal {
