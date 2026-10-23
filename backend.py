@@ -13,6 +13,8 @@ import shutil
 import tempfile
 import subprocess
 import argparse
+import fcntl
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
@@ -309,7 +311,24 @@ class MetadataStore:
         self.load()
 
     def load(self):
+        with self._locked():
+            self._load_unlocked()
+
+    @contextmanager
+    def _locked(self):
+        """Serialize metadata read-modify-write transactions across processes."""
+        lock_path = self.file_path.with_name(f"{self.file_path.name}.lock")
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(lock_path, "a", encoding="utf-8") as lock_file:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+    def _load_unlocked(self):
         if not self.file_path.is_file():
+            self.data = {"version": 1, "favorites": [], "items": {}}
             return
         try:
             with open(self.file_path, "r", encoding="utf-8") as f:
@@ -329,7 +348,7 @@ class MetadataStore:
             pass
         self.data = {"version": 1, "favorites": [], "items": {}}
 
-    def save(self):
+    def _save_unlocked(self):
         tmp_fd, tmp_path = tempfile.mkstemp(dir=str(self.file_path.parent), prefix="meta_tmp_")
         try:
             with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
@@ -347,35 +366,51 @@ class MetadataStore:
         return item_id in self.data.get("favorites", [])
 
     def set_favorite(self, item_id: str, is_fav: bool):
-        favs = set(self.data.get("favorites", []))
-        if is_fav:
-            favs.add(item_id)
-        else:
-            favs.discard(item_id)
-        self.data["favorites"] = sorted(list(favs))
+        with self._locked():
+            self._load_unlocked()
+            favs = set(self.data.get("favorites", []))
+            if is_fav:
+                favs.add(item_id)
+            else:
+                favs.discard(item_id)
+            self.data["favorites"] = sorted(favs)
 
-        # Also update in items if present
-        if item_id in self.data.get("items", {}):
-            self.data["items"][item_id]["favorite"] = is_fav
-        self.save()
+            # Also update in items if present
+            if item_id in self.data.get("items", {}):
+                self.data["items"][item_id]["favorite"] = is_fav
+            self._save_unlocked()
 
     def toggle_favorite(self, item_id: str) -> bool:
-        new_state = not self.is_favorite(item_id)
-        self.set_favorite(item_id, new_state)
-        return new_state
+        with self._locked():
+            self._load_unlocked()
+            new_state = item_id not in self.data.get("favorites", [])
+            favs = set(self.data.get("favorites", []))
+            if new_state:
+                favs.add(item_id)
+            else:
+                favs.discard(item_id)
+            self.data["favorites"] = sorted(favs)
+            if item_id in self.data.get("items", {}):
+                self.data["items"][item_id]["favorite"] = new_state
+            self._save_unlocked()
+            return new_state
 
     def update_item(self, item_id: str, item_data: Dict[str, Any]):
-        if "items" not in self.data:
-            self.data["items"] = {}
-        self.data["items"][item_id] = item_data
-        self.save()
+        with self._locked():
+            self._load_unlocked()
+            if "items" not in self.data:
+                self.data["items"] = {}
+            self.data["items"][item_id] = item_data
+            self._save_unlocked()
 
     def remove_item(self, item_id: str):
-        if item_id in self.data.get("favorites", []):
-            self.data["favorites"].remove(item_id)
-        if item_id in self.data.get("items", {}):
-            del self.data["items"][item_id]
-        self.save()
+        with self._locked():
+            self._load_unlocked()
+            if item_id in self.data.get("favorites", []):
+                self.data["favorites"].remove(item_id)
+            if item_id in self.data.get("items", {}):
+                del self.data["items"][item_id]
+            self._save_unlocked()
 
 
 class WallpaperCatalog:

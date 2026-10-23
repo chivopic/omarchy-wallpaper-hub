@@ -1,0 +1,20 @@
+test_cannot_delete_active_wallpaper (test_backend.TestFileSafety.test_cannot_delete_active_wallpaper) ... [FILE_NOT_FOUND] Item not found: global:active.png
+ok
+test_cannot_delete_theme_wallpaper (test_backend.TestFileSafety.test_cannot_delete_theme_wallpaper) ... [FILE_NOT_FOUND] Item not found: native:theme:bg.jpg
+ok
+test_apply_magick_filter (test_backend.TestFilterManager.test_apply_magick_filter) ... ok
+test_reject_corrupt (test_backend.TestImageValidator.test_reject_corrupt) ... ok
+test_reject_gif (test_backend.TestImageValidator.test_reject_gif) ... ok
+test_reject_oversized_resolution (test_backend.TestImageValidator.test_reject_oversized_resolution) ... ok
+test_valid_jpeg (test_backend.TestImageValidator.test_valid_jpeg) ... ok
+test_valid_png (test_backend.TestImageValidator.test_valid_png) ... ok
+test_corruption_recovery (test_backend.TestMetadataStore.test_corruption_recovery) ... ok
+test_save_and_load (test_backend.TestMetadataStore.test_save_and_load) ... ok
+test_toggle_favorite (test_backend.TestMetadataStore.test_toggle_favorite) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.015s
+
+OK
+{"schemaVersion": 1, "success": false, "data": null, "error": {"code": "FILE_NOT_FOUND", "message": "Item not found: global:active.png"}}
+{"schemaVersion": 1, "success": false, "data": null, "error": {"code": "FILE_NOT_FOUND", "message": "Item not found: native:theme:bg.jpg"}}

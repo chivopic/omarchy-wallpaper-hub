@@ -1,4 +1,5 @@
 import unittest
+import unittest.mock
 import os
 import sys
 import json
@@ -6,6 +7,9 @@ import tempfile
 import struct
 from pathlib import Path
 import subprocess
+import multiprocessing
+from contextlib import redirect_stdout
+from io import StringIO
 
 # Add parent dir to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -19,6 +23,15 @@ from backend import (
     MAX_FILE_SIZE,
     MAX_PIXELS
 )
+
+
+def _concurrent_metadata_writer(metadata_file, worker_id, start_barrier):
+    import backend
+    backend.Paths.metadata_file = staticmethod(lambda: Path(metadata_file))
+    store = MetadataStore()
+    start_barrier.wait(timeout=10)
+    store.set_favorite(f"worker:{worker_id}", True)
+    store.update_item(f"worker:{worker_id}", {"id": f"worker:{worker_id}"})
 
 
 class TestImageValidator(unittest.TestCase):
@@ -88,13 +101,15 @@ class TestMetadataStore(unittest.TestCase):
     def setUp(self):
         self.tmp_dir = tempfile.TemporaryDirectory()
         self.meta_file = Path(self.tmp_dir.name) / "metadata.json"
-        self.orig_meta_path = MetadataStore
         # Patch Paths.metadata_file
         import backend
+        self.orig_meta_path = backend.Paths.metadata_file
         backend.Paths.metadata_file = staticmethod(lambda: self.meta_file)
         self.store = MetadataStore()
 
     def tearDown(self):
+        import backend
+        backend.Paths.metadata_file = self.orig_meta_path
         self.tmp_dir.cleanup()
 
     def test_save_and_load(self):
@@ -124,6 +139,38 @@ class TestMetadataStore(unittest.TestCase):
         backups = list(Path(self.tmp_dir.name).glob("metadata.json.corrupt.*"))
         self.assertGreaterEqual(len(backups), 1)
 
+    def test_concurrent_writers_preserve_favorites_and_item_updates(self):
+        context = multiprocessing.get_context("fork")
+        start_barrier = context.Barrier(8)
+        processes = [
+            context.Process(
+                target=_concurrent_metadata_writer,
+                args=(str(self.meta_file), worker_id, start_barrier),
+            )
+            for worker_id in range(8)
+        ]
+        try:
+            for process in processes:
+                process.start()
+            for process in processes:
+                process.join(timeout=10)
+                if process.is_alive():
+                    process.terminate()
+                    process.join(timeout=5)
+                    self.fail("metadata writer deadlocked")
+                self.assertEqual(process.exitcode, 0)
+        finally:
+            for process in processes:
+                if process.is_alive():
+                    process.terminate()
+                    process.join(timeout=5)
+
+        result = MetadataStore().data
+        expected = {f"worker:{worker_id}" for worker_id in range(8)}
+        self.assertEqual(set(result["favorites"]), expected)
+        self.assertEqual(set(result["items"]), expected)
+        self.assertEqual(json.loads(self.meta_file.read_text())["version"], 1)
+
 
 class TestFileSafety(unittest.TestCase):
     def setUp(self):
@@ -134,6 +181,9 @@ class TestFileSafety(unittest.TestCase):
         self.orig_global_dir = backend.Paths.global_wallpapers_dir
         self.orig_meta_file = backend.Paths.metadata_file
         self.orig_current_bg = backend.Paths.current_background_path
+        self.orig_native_dir = backend.Paths.native_theme_backgrounds_dir
+        self.orig_theme_name = backend.Paths.current_theme_name
+        self.orig_thumb_path = backend.ThumbnailManager.get_thumbnail_path
 
         self.global_dir = self.d / "wallpapers"
         self.global_dir.mkdir(parents=True)
@@ -147,25 +197,52 @@ class TestFileSafety(unittest.TestCase):
         backend.Paths.global_wallpapers_dir = self.orig_global_dir
         backend.Paths.metadata_file = self.orig_meta_file
         backend.Paths.current_background_path = self.orig_current_bg
+        backend.Paths.native_theme_backgrounds_dir = self.orig_native_dir
+        backend.Paths.current_theme_name = self.orig_theme_name
+        backend.ThumbnailManager.get_thumbnail_path = self.orig_thumb_path
         self.tmp_dir.cleanup()
 
     def test_cannot_delete_active_wallpaper(self):
         import backend
         fake_bg = self.global_dir / "active.png"
-        fake_bg.write_bytes(b"\x89PNG\r\n\x1a\n" + b"\x00" * 50)
+        fake_bg.write_bytes(
+            b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR"
+            + struct.pack(">II", 2, 2) + b"\x08\x06\x00\x00\x00" + b"\x00" * 40
+        )
         backend.Paths.current_background_path = staticmethod(lambda: str(fake_bg.resolve()))
+        backend.ThumbnailManager.get_thumbnail_path = staticmethod(lambda _path: self.d / "missing-thumb.png")
 
         # System exit with CANNOT_DELETE_ACTIVE_WALLPAPER
         metadata = MetadataStore()
         catalog = WallpaperCatalog(metadata)
-        with self.assertRaises(SystemExit):
-            FileManager.delete_wallpaper("global:active.png", catalog)
+        output = StringIO()
+        with unittest.mock.patch("backend.subprocess.run") as run, redirect_stdout(output):
+            with self.assertRaises(SystemExit):
+                FileManager.delete_wallpaper("global:active.png", catalog)
+        self.assertEqual(json.loads(output.getvalue())["error"]["code"], "CANNOT_DELETE_ACTIVE_WALLPAPER")
+        run.assert_not_called()
 
     def test_cannot_delete_theme_wallpaper(self):
+        import backend
+        native_dir = self.d / "native-theme"
+        native_dir.mkdir()
+        native_wallpaper = native_dir / "preset.png"
+        native_wallpaper.write_bytes(
+            b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR"
+            + struct.pack(">II", 2, 2) + b"\x08\x06\x00\x00\x00" + b"\x00" * 40
+        )
+        backend.Paths.native_theme_backgrounds_dir = staticmethod(lambda: native_dir)
+        backend.Paths.current_theme_name = staticmethod(lambda: "default")
+        backend.Paths.current_background_path = staticmethod(lambda: None)
+        backend.ThumbnailManager.get_thumbnail_path = staticmethod(lambda _path: self.d / "missing-thumb.png")
         metadata = MetadataStore()
         catalog = WallpaperCatalog(metadata)
-        with self.assertRaises(SystemExit):
-            FileManager.delete_wallpaper("native:theme:bg.jpg", catalog)
+        output = StringIO()
+        with unittest.mock.patch("backend.subprocess.run") as run, redirect_stdout(output):
+            with self.assertRaises(SystemExit):
+                FileManager.delete_wallpaper("native:default:preset.png", catalog)
+        self.assertEqual(json.loads(output.getvalue())["error"]["code"], "PERMISSION_DENIED")
+        run.assert_not_called()
 
 
 
